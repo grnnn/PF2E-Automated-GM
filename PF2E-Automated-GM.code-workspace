@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"multiCommand.commands": [
+			{
+				"command": "multiCommand.copyFile",
+				"label": "Copy file to another location",
+				"description": "copy the current $file to another root hard-coded destination, require 'command-runner' plugin.",
+				"interval": 2,
+				"sequence": [
+					"workbench.action.files.save",
+					{
+						"command": "command-runner.run",
+						"args": { "command": "cp \"${file}\" \"C:\\Users\\taylo\\AppData\\Local\\FoundryVTT\\Data\\modules\\pf2e-automated-gm/${relativeFile}\"" }
+					}
+				]
+			}
+		]
+	}
+}

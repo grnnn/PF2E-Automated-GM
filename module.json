@@ -1,0 +1,30 @@
+{
+  "id": "pf2e-automated-gm",
+  "title": "PF2e Automated GM",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "pf2e",
+        "type": "system",
+        "compatibility": {}
+      }
+    ]
+  },
+  "description": "A foundry VTT plugin that provides tools for automating the GM in Pathfinder 2nd edition",
+  "authors": [
+    {
+      "name": "Taylor Owen",
+      "email": "taylorjowen@yahoo.com",
+      "flags": {}
+    }
+  ],
+  "url": "https://github.com/grnnn/PF2E-Automated-GM",
+  "scripts" : [
+      "scripts/main.js"
+  ]
+}
