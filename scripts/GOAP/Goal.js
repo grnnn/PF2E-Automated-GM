@@ -7,32 +7,40 @@ export class Goal {
     isAchieved(worldState) {
         // states formatted like:
         // { "key": "name", "val": 1, "op": ">"}
-        for (const state of this.desiredStates) {
-            if (!('key' in state) || !('val' in state) || !('op' in state))
+        for (const desiredState of this.desiredStates) {
+            if (!('key' in desiredState) || !('val' in desiredState) || !('op' in desiredState))
                 continue;
             
             let worldVal = worldState[state['key']];
-            switch (state['op']) {
-                case '=':
-                case '==':
-                case '===':
-                    if (worldVal !== state['val']) return false;
-                case '!=':
-                case '!==':
-                    if (worldVal === state['val']) return false;
-                case '>':
-                    if (worldVal <= state['val']) return false;
-                case '>=':
-                    if (worldVal < state['val']) return false;
-                case '<':
-                    if (worldVal >= state['val']) return false;
-                case '<=':
-                    if (worldVal > state['val']) return false;
-                default:
-                    return false;
-            }
+            if (!this.doesStateFulfillGoal(desiredState, worldVal))
+                return false;
         }
 
         return true;
+    }
+
+    doesStateFulfillGoal(desiredState, worldVal) {
+        if (!('key' in desiredState) || !('val' in desiredState) || !('op' in desiredState))
+            return false;
+
+        switch (state['op']) {
+            case '=':
+            case '==':
+            case '===':
+                if (worldVal === state['val']) return true;
+            case '!=':
+            case '!==':
+                if (worldVal !== state['val']) return true;
+            case '>':
+                if (worldVal > state['val']) return true;
+            case '>=':
+                if (worldVal >= state['val']) return true;
+            case '<':
+                if (worldVal < state['val']) return true;
+            case '<=':
+                if (worldVal <= state['val']) return true;
+            default:
+                return false;
+        }
     }
 }

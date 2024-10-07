@@ -1,5 +1,6 @@
 export class Action {
-    constructor(name, preconditions, effects, numberOfActions) {
+    constructor(id, name, preconditions, effects, numberOfActions) {
+        this.id = id;                           // id of the action (unique per agent)
         this.name = name;                       // name of the action (eg "Strike", "Stride")
         this.preconditions = preconditions;     // what must be true of the actor's world state before acting
         this.effects = effects;                 // what is projected to be true of the actor's world state after acting
@@ -41,11 +42,12 @@ export class Action {
     applyEffects(worldState) {
         // effects formatted like:
         //  { "key": "name", "val": 1, "op": "+"}
+        let result = { ...worldState };
         for (const effect of this.effects) {
             if (!('key' in effect) || !('val' in effect) || !('op' in effect))
                 continue;
             
-            let worldVal = worldState[effect['key']];
+            let worldVal = result[effect['key']];
             switch (effect['op']) {
                 case '=':
                     worldVal = effect['val'];
@@ -60,10 +62,10 @@ export class Action {
                     worldVal /= effect['val'];
                 case '%':
                     worldVal %= effect['val'];
-                default:
-                    return;
             }
-            worldState[effect['key']] = worldVal;
+            result[effect['key']] = worldVal;
         }
+
+        return result;
     }
 }
