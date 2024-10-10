@@ -11,7 +11,7 @@ export class Goal {
             if (!('key' in desiredState) || !('val' in desiredState) || !('op' in desiredState))
                 continue;
             
-            let worldVal = worldState[state['key']];
+            let worldVal = worldState[desiredState['key']];
             if (!this.doesStateFulfillGoal(desiredState, worldVal))
                 return false;
         }
@@ -23,22 +23,28 @@ export class Goal {
         if (!('key' in desiredState) || !('val' in desiredState) || !('op' in desiredState))
             return false;
 
-        switch (state['op']) {
+        switch (desiredState['op']) {
             case '=':
             case '==':
             case '===':
-                if (worldVal === state['val']) return true;
+                if (worldVal === desiredState['val']) return true;
+                break;
             case '!=':
             case '!==':
-                if (worldVal !== state['val']) return true;
+                if (worldVal !== desiredState['val']) return true;
+                break;
             case '>':
-                if (worldVal > state['val']) return true;
+                if (worldVal > desiredState['val']) return true;
+                break;
             case '>=':
-                if (worldVal >= state['val']) return true;
+                if (worldVal >= desiredState['val']) return true;
+                break;
             case '<':
-                if (worldVal < state['val']) return true;
+                if (worldVal < desiredState['val']) return true;
+                break;
             case '<=':
-                if (worldVal <= state['val']) return true;
+                if (worldVal <= desiredState['val']) return true;
+                break;
             default:
                 return false;
         }

@@ -24,7 +24,8 @@
     }
   ],
   "url": "https://github.com/grnnn/PF2E-Automated-GM",
-  "scripts" : [
-      "scripts/main.js"
+  "scripts" : [ ],
+  "esmodules": [
+    "scripts/main.js"
   ]
 }

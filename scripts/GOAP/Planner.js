@@ -1,9 +1,6 @@
-import { Action } from './Action';
-import { Goal } from './Goal';
-
 export class Planner {
     constructor(actions) {
-        this.actions = actions;     // actions available to the owning agent
+        this.actions = actions;
     }
 
     setGoal(goal) {
@@ -18,8 +15,8 @@ export class Planner {
         let startingNode = {
             state: { ...worldState },
             actionCost: 0,
-            heuristic: heuristic(worldState, this.goal),
-            actionIds: [],
+            heuristic: this.heuristic(worldState, this.goal),
+            actions: []
         };
 
         traversible.push(startingNode);
@@ -29,15 +26,21 @@ export class Planner {
             traversible.sort((nodeA, nodeB) => (nodeA.actionCost + nodeA.heuristic) - (nodeB.actionCost + nodeB.heuristic));
             let currentNode = traversible.shift();
 
+            if (currentNode.actionCost > 10) {
+                return [];
+            }
+
             // check if we've achieved the goal
+            console.log("currentNode:");
+            console.log(currentNode);
             if (this.goal.isAchieved(currentNode.state)) {
                 return currentNode.actionIds;
             }
 
             // Iterate over actions 
-            for (let action of this.actions) {
+            for (const [name, action] of Object.entries(this.actions)) {
                 // check that we dont go over three actions
-                if ((currentNode.actionCost % 3) + action.actionCost > 3)
+                if ((currentNode.actionCost % 3) + action.numberOfActions > 3)
                     continue;
 
                 // check preconditions
@@ -45,18 +48,20 @@ export class Planner {
                     continue;
                 
                 // apply the next action to get the new state
-                let newState = action.applyEffects({ ...currentNode.state });
+                let newState = action.applyEffects(currentNode.state, currentNode.actionCost);
 
                 // next node
                 let nextNode = {
                     state: newState,
-                    actionCost: currentNode.actionCost + action.actionCost,
-                    heuristic: this.heuristic(newState, goal),
-                    actionIds: [...currentNode.actionIds, action.id]
+                    actionCost: currentNode.actionCost + action.numberOfActions,
+                    heuristic: this.heuristic(newState, this.goal),
+                    actions: [...currentNode.actions, action.name]
                 }
                 traversible.push(nextNode);
             }
         }
+
+        return [];
     }
 
     // check the number of differing world state values
