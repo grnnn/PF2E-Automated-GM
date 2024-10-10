@@ -1,0 +1,74 @@
+{
+    "compilerOptions": {
+        "allowImportingTsExtensions": true,
+        "allowUnusedLabels": false,
+        "noEmit": true,
+        "moduleResolution": "Bundler",
+        "target": "esnext",                     
+        "module": "esnext",                     
+        "outDir": "./dist",                  
+        "rootDir": ".",            
+        "strict": true,                      
+        "esModuleInterop": true,             
+        "forceConsistentCasingInFileNames": true,
+        "noErrorTruncation": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitOverride": true,
+        "noImplicitReturns": true,
+        "noUncheckedSideEffectImports": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "removeComments": false,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "strictBindCallApply": true,
+        "strictFunctionTypes": false,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "useDefineForClassFields": true,
+        "paths": {
+            "@actor": [
+                "./types/src/module/actor/index.js"
+            ],
+            "@actor/*": [
+                "./types/src/module/actor/*"
+            ],
+            "@item": [
+                "./types/src/module/item/index.js"
+            ],
+            "@item/*": [
+                "./types/src/module/item/*"
+            ],
+            "@module/*": [
+                "./types/src/module/*"
+            ],
+            "@scene": [
+                "./types/src/module/scene/index.js"
+            ],
+            "@scene/*": [
+                "./types/src/module/scene/*"
+            ],
+            "@scripts/*": [
+                "./types/src/scripts/*"
+            ],
+            "@system/*": [
+                "./types/src/module/system/*"
+            ],
+            "@util": [
+                "./types/src/util/index.js"
+            ],
+            "@util/*": [
+                "./types/src/util/*"
+            ]
+        },
+        "typeRoots": [
+            "node_modules/@types",
+            "./types/types/foundry/**/**"
+        ],
+        "baseUrl": "."
+    },
+    "include": [
+        "./scripts/**/*",
+    ]
+}
