@@ -3,9 +3,9 @@
         "allowImportingTsExtensions": true,
         "allowUnusedLabels": false,
         "noEmit": true,
-        "moduleResolution": "Bundler",
-        "target": "esnext",                     
-        "module": "esnext",                     
+        "moduleResolution": "NodeNext",
+        "target": "es2022",                     
+        "module": "NodeNext",                     
         "outDir": "./dist",                  
         "rootDir": ".",            
         "strict": true,                      
@@ -64,7 +64,12 @@
         },
         "typeRoots": [
             "node_modules/@types",
-            "./types/types/foundry/**/**"
+            "./types/types/foundry"
+        ],
+        "types": [
+            "jquery",
+            "node",
+            "tooltipster",
         ],
         "baseUrl": "."
     },

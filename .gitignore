@@ -1,0 +1,22 @@
+# npm stuff
+dist/
+foundryconfig.json
+node_modules/
+package/
+packs-temp/
+json-assets/
+node_modules
+types/types/foundry/package-lock.json
+*.iml
+/.vscode
+/node_modules/
+.DS_Store
+**.env
+npm-debug.log
+coverage/
+debug/
+
+#Foundry bundle
+foundry.js
+#Pathfinder bundle
+main.bundle.js
