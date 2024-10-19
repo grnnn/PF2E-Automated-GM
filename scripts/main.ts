@@ -2,8 +2,10 @@ import '../types/types/foundry/index.d.ts'
 import '../types/src/global.d.ts'
 
 import type { TokenDocumentPF2e } from '@module/scene/token-document/document.d.ts';
-import { /*CombatantPF2e,*/ EncounterPF2e } from "@module/encounter/index.ts"
+import { EncounterPF2e } from "@module/encounter/index.ts"
 import { ScenePF2e } from '@module/scene/document.js';
+import { ActorPF2e } from '@actor';
+
 //import { Agent } from './Agent.js';
 
 
@@ -19,11 +21,12 @@ Hooks.on("combatStart", (encounterPf2e: EncounterPF2e) => {
   let npcActors = [];
   let pcActors = [];
   for (let combatant of encounterPf2e.combatants) {
-    let actor = game?.scenes.active?.tokens.find((token : TokenDocumentPF2e<ScenePF2e>) => token.actor.id === combatant.actorId).actor;
-    if (actor?.type === "npc") {
+    let actor : ActorPF2e = game?.scenes.active?.tokens.find((token : TokenDocumentPF2e<ScenePF2e>) => token.actor?.id === combatant.actorId)?.actor!;
+    
+    if (actor.type === "npc") {
       npcActors.push([actor, combatant.tokenId]);
     }
-    if (actor?.type === "character") {
+    if (actor.type === "character") {
       pcActors.push(actor);
     }
   }

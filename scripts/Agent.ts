@@ -1,9 +1,19 @@
-import { Action } from './GOAP/Action.js';
-import { Goal } from './GOAP/Goal.js';
-import { Planner } from './GOAP/Planner.js';
+// import { Action } from './GOAP/Action.js';
+// import { Goal } from './GOAP/Goal.js';
+// import { Planner } from './GOAP/Planner.js';
+
+import { ActorPF2e } from "@actor";
+import { StrikeData } from "@actor/data/base.js";
+import { CombatantPF2e } from "@module/encounter/combatant.js";
 
 export class Agent {
-    constructor(actor, tokenId, players) {
+    private actor : ActorPF2e;
+    private players : ActorPF2e[];
+    private actions : Record<string, Action>;
+    private planner : Planner;
+    private hookId : number
+
+    constructor(actor : ActorPF2e, tokenId : string, players : ActorPF2e[]) {
         this.actor = actor;
         this.players = players;
 
@@ -12,7 +22,7 @@ export class Agent {
 
         this.planner = new Planner(this.actions);
 
-        this.hookId = Hooks.on("pf2e.startTurn", (combatant) => {
+       this.hookId = Hooks.on("pf2e.startTurn", (combatant : CombatantPF2e) => {
             if (combatant.tokenId !== tokenId)
                 return;
 
@@ -20,29 +30,26 @@ export class Agent {
         });
     }
 
-    cleanUp() {
+    cleanUp() : void{
         Hooks.off("pf2e.startTurn", this.hookId);
     }
 
-    createPlan() {
+    createPlan() : void{
         this.planner.setGoal(this.generateGoal());
         let plan = this.planner.generatePlan(this.generateWorldState());
         console.log(plan);
     }
 
-    generateActions() {
+    generateActions() : void {
         // iterate through all provided actions
-        let actions = this.actor.system.actions;
-        for (const sm of actions) {
+        let strikes : StrikeData[] = this.actor.system.actions!;
+        for (const strike of strikes) {
             // strikes
-            if (sm.type === "strike") {
-                let weapon = sm.weapon;
-                for (const player of this.players) {
-                    this.addAction(new Action(weapon.name + " on " + player.name, 1, weapon.system.traits.value,
-                        [{"key": "adjacent_to_" + player.name, "val": true, "op": "==="}, {"key": player.name + ".hp", "val": 0, "op": ">"}],
-                        [{"key": player.name + ".hp", "val": sm.weapon?.damage, "op": "-", "tag": "damage"}, {'key': "multiple_attack_penalty", 'val': 1, 'op': "+"}]
-                    ));
-                }
+            if (strike.type === "strike") {
+                this.addAction(new Action(strike.label, 1, strike.traits,
+                    [{"key": "adjacent_to_" + strike.label, "val": true, "op": "==="}, {"key": strike.label + ".hp", "val": 0, "op": ">"}],
+                    [{"key": strike.label + ".hp", "val": strike.success, "op": "-", "tag": "damage"}, {'key': "multiple_attack_penalty", 'val': 1, 'op': "+"}]
+                ));
             }
         }
 
@@ -55,12 +62,12 @@ export class Agent {
         }
     } 
 
-    addAction(action) {
+    addAction(action) : void {
         this.actions[action.name] = action;
     }
 
-    generateWorldState() {
-        let worldState = {};
+    generateWorldState() : Record<string, number | string | boolean> {
+        let worldState : Record<string, number | string | boolean> = {};
         for (const player of this.players) {
             worldState["adjacent_to_" + player.name] = false;
             worldState[player.name + ".hp"] = 20;
@@ -78,6 +85,4 @@ export class Agent {
 
         return new Goal("kill em all", goalStates);
     }
-
-
 }

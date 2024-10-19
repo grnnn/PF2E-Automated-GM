@@ -162,6 +162,8 @@ declare global {
          * @param fn    The function that should be removed from the set of hooked callbacks
          */
         static off(hook: string, fn: Function): void;
+        static off(hook: string, id: number): void;
+
 
         /**
          * Call all hook listeners in the order in which they were registered

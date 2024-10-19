@@ -21,7 +21,7 @@ export class PrimarySpriteMesh extends PrimaryOccludableObjectMixin(SpriteMesh) 
 
     declare object: object | null;
 
-    declare name: string | null;
+    declare name: string;
 
     /** The texture alpha data. */
     protected declare _textureAlphaData: TextureAlphaData | null;
