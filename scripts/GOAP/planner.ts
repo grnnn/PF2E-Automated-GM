@@ -11,18 +11,12 @@ interface Node {
 
 export class Planner {
     private actions: Action[];
-    private goal : Goal;
 
     constructor(actions : Action[]) {
         this.actions = actions;
-        this.goal = new Goal("default", []);
     }
 
-    setGoal(goal : Goal) : void {
-        this.goal = goal;
-    }
-
-    generatePlan(worldState : WorldState) : string[] {
+    generatePlan(worldState : WorldState, goal : Goal, actionsTaken: number = 0, actionLimit: number = 3, planLimit : number = 6) : string[] {
         // set contains traversible nodes
         let traversible : Node[] = [];
 
@@ -30,7 +24,7 @@ export class Planner {
         let startingNode : Node = {
             state: { ...worldState },
             actionCost: 0,
-            heuristic: this.heuristic(worldState, this.goal),
+            heuristic: this.heuristic(worldState, goal),
             actionNames: []
         };
 
@@ -41,19 +35,24 @@ export class Planner {
             traversible.sort((nodeA, nodeB) => (nodeA.actionCost + nodeA.heuristic) - (nodeB.actionCost + nodeB.heuristic));
             let current : Node = traversible.shift()!;
 
-            if (current.actionCost > 10) {
-                return [];
+            if (current.actionCost >= planLimit) {
+                // get the node with the smallest distance to the goal
+                traversible.push(current);
+                traversible.sort((nodeA, nodeB) => goal.distanceFromGoal(nodeA.state) - goal.distanceFromGoal(nodeB.state));
+                current = traversible.shift()!;
+                return current.actionNames;
             }
 
             // check if we've achieved the goal
-            if (this.goal.isAchieved(current.state)) {
+            if (goal.isAchieved(current.state)) {
                 return current.actionNames;
             }
 
             // Iterate over actions 
             for (const action of this.actions) {
                 // check that we dont go over three actions
-                if ((current.actionCost % 3) + action.numberOfActions > 3)
+                let actionCount = current.actionCost < actionLimit && actionsTaken > 0 ? actionsTaken : 0;
+                if (actionCount + (current.actionCost % 3) + action.numberOfActions > actionLimit)
                     continue;
 
                 // check preconditions
@@ -67,7 +66,7 @@ export class Planner {
                 let nextNode = {
                     state: newState,
                     actionCost: current.actionCost + action.numberOfActions,
-                    heuristic: this.heuristic(newState, this.goal),
+                    heuristic: this.heuristic(newState, goal),
                     actionNames: [...current.actionNames, action.name]
                 }
                 traversible.push(nextNode);

@@ -39,8 +39,8 @@ export class Agent {
     }
 
     createPlan() : void {
-        this.planner.setGoal(this.generateGoal());
-        let plan = this.planner.generatePlan(this.generateWorldState());
+        let goal = this.generateGoal();
+        let plan = this.planner.generatePlan(this.generateWorldState(), goal);
         console.log(plan);
     }
 
@@ -53,7 +53,7 @@ export class Agent {
                 if (strike.type === "strike") {
                     this.addAction(new Action(`${strike.label} on ${player.name}`, 1, strike.traits,
                         [{ key: `adjacent_to_${player.name}`, val: true, op: "===" }, { key: `${player.name}.hp`, val: 0, op: ">" }],
-                        [{ key: `${player.name}.hp`, val: strike.success, op: "-", tag: "damage" }, { key: "multiple_attack_penalty", val: 1, op: "+" }]
+                        [{ key: `${player.name}.hp`, val: strike.item.baseDamage, op: "-"}, { key: "multiple_attack_penalty", val: 1, op: "+" }]
                     ));
                 }
             }

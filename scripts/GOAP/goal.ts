@@ -19,7 +19,7 @@ export class Goal {
         return true;
     }
 
-    closenessToGoal(worldState : WorldState) : number {
+    distanceFromGoal(worldState : WorldState) : number {
         let score = 0;
         for (let desiredState of this.desiredStates) {
             let worldVal = worldState[desiredState.key];

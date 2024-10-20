@@ -1,3 +1,5 @@
+import { WeaponDamage } from "@item/weapon/data";
+
 export interface StateCheck {
     key: string;
     val: number | string | boolean;
@@ -7,9 +9,8 @@ export interface StateCheck {
 
 export interface Effect {
     key: string;
-    val: number | string | boolean;
+    val: number | string | boolean | WeaponDamage;
     op: string;
-    tag?: string;
 }
 
 export type WorldState = Record<string, number | string | boolean>;

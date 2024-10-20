@@ -1,5 +1,6 @@
 import { TraitViewData } from "@actor/data/base.js";
 import { StateCheck, Effect, WorldState } from "./structs.ts";
+import { WeaponDamage } from "@item/weapon/data.js";
 
 export class Action {
     public name: string;                    // name of the action (eg "Strike", "Stride")
@@ -54,13 +55,13 @@ export class Action {
     applyEffects(worldState : WorldState, prevActionCost : number) : WorldState {
         let result = { ...worldState };
         for (const effect of this.effects) {
-            let value = effect.val;
-            if (effect?.tag === 'damage') {
+            let value : string | number | boolean | WeaponDamage = effect.val;
+
+            if (this.isWeaponDamage(value)) {
                 // key format for players: player1.ac, player1.hp, player1.fortSave, etc etc
                 let playerName = effect.key.split('.')[0];
                 let defType = 'ac'; // todo figure out how to extract different defenses
-                let diceVal = value as string;
-                value = this.calculateMedianDamage(playerName, diceVal, defType, worldState);
+                value = this.calculateMedianDamage(playerName, value as WeaponDamage, defType, worldState);
             }
             
             let worldVal = result[effect.key];
@@ -100,19 +101,24 @@ export class Action {
         return result;
     }
 
-    calculateMedianDamage(playerName : string, damageValue : string, defType : string, worldState : WorldState) : number{
-        if (playerName === null || playerName === '') {
-            return this.getMedianDiceDamage(damageValue) * 0.5;
+    // Type guard function to check if a value is of type WeaponDamage
+    isWeaponDamage(value: any): value is WeaponDamage {
+        return value && typeof value === 'object' && 'dice' in value && 'die' in value && 'modifier' in value;
+    }   
+
+    calculateMedianDamage(playerName : string, damageValue : WeaponDamage, defType : string, worldState : WorldState) : number{
+        if (playerName === '') {
+            return Math.max(Math.round(this.getMedianDiceDamage(damageValue)), 1);
         }
 
         let medDamageOnHit = this.getMedianDiceDamage(damageValue);
         let chanceToHit = this.calculateChanceToHit(playerName, defType, worldState);
         if (chanceToHit - 0.5 > 0) { // checking if we can crit, todo account for nat 1, nat 20
-            let deadlyDice = '';
-            let deadlyDiceTrait = this.traits.find(trait => trait.label.startsWith("deadly "));
-            if (deadlyDiceTrait !== undefined)
-                deadlyDice = deadlyDiceTrait.label.substring(7);
-            let medDamageOnCrit = (medDamageOnHit * 2) + this.getMedianDiceDamage(deadlyDice);
+            // let deadlyDice = '';
+            // let deadlyDiceTrait = this.traits.find(trait => trait.label.startsWith("deadly "));
+            // if (deadlyDiceTrait !== undefined)
+            //     deadlyDice = deadlyDiceTrait.label.substring(7);
+            let medDamageOnCrit = (medDamageOnHit * 2);// + this.getMedianDiceDamage(deadlyDice);
 
             return Math.max(Math.round((medDamageOnHit * chanceToHit) + (medDamageOnCrit * (chanceToHit - 0.5))), 1);
         } else {
@@ -120,31 +126,19 @@ export class Action {
         }
     }
 
-    getMedianDiceDamage(roll : string) : number{
-        if (roll === null || roll === '') {
-            return 0;
-        }
-
-        const dicePattern = /(\d*)d(\d+)/g;
-        const modifierPattern = /([+-]\s*\d+)/g;
-
+    getMedianDiceDamage(damageValue : WeaponDamage) : number{
         let result = 0;
-        // match dice
+
+        const dicePattern = /d(\d+)/g;
         let diceMatch;
-        while((diceMatch = dicePattern.exec(roll)) !== null) {
-            let numDice = parseInt(diceMatch[1] || "1");
-            let numSides = parseInt(diceMatch[2]);
+        while((diceMatch = dicePattern.exec(damageValue.die!)) !== null) {
+            let numSides = parseInt(diceMatch[1]);
             let singleDiceVal = (numSides % 2 === 0) ? (numSides / 2 + 0.5) : ((numSides + 1)/2);
 
-            result += numDice * singleDiceVal;
+            result += damageValue.dice * singleDiceVal;
         }
 
-        // match modifiers
-        let modMatch;
-        while((modMatch = modifierPattern.exec(roll)) !== null) {
-            let mod = parseInt(modMatch[0].replace(/\s+/g, ""));
-            result += mod;
-        }
+        result += damageValue.modifier;
 
         return result;
     }

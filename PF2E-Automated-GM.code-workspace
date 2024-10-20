@@ -32,17 +32,15 @@
         "type": "shell",
         "command": "npx rollup -c",
         "isBackground": true,
-        "problemMatcher": ["$rollup"],
+        "problemMatcher": [],
         "detail": "Bundle all TS files into a single JS file"
       },
       {
         "label": "Copy JS Files",
         "type": "shell",
-        "command": "cp",
+        "command": "node",
         "args": [
-          "-r",                      
-          "${workspaceFolder}/dist/*",   
-          "C:/Users/taylo/AppData/Local/FoundryVTT/Data/modules/pf2e-automated-gm/dist"     
+          "${workspaceFolder}/tasks/copy-files.mjs" 
         ],
         "problemMatcher": [],
         "detail": "Copy all JS files to the hardcoded destination"
