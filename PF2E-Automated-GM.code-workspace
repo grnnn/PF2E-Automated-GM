@@ -27,18 +27,26 @@
         "problemMatcher": ["$tsc-watch"],
         "detail": "Watch TypeScript files and transpile on save"
       },
-	  {
-		"label": "Copy JS Files",
-		"type": "shell",
-		"command": "cp",
-		"args": [
-		  "-r",                      
-		  "${workspaceFolder}/dist/*.js",   
-		  "C:/Users/taylo/AppData/Local/FoundryVTT/Data/modules/pf2e-automated-gm/dist"     
-		],
-		"problemMatcher": [],
-		"detail": "Copy all JS files to the hardcoded destination"
-	  }
+      {
+        "label": "Bundle",
+        "type": "shell",
+        "command": "npx rollup -c",
+        "isBackground": true,
+        "problemMatcher": ["$rollup"],
+        "detail": "Bundle all TS files into a single JS file"
+      },
+      {
+        "label": "Copy JS Files",
+        "type": "shell",
+        "command": "cp",
+        "args": [
+          "-r",                      
+          "${workspaceFolder}/dist/*",   
+          "C:/Users/taylo/AppData/Local/FoundryVTT/Data/modules/pf2e-automated-gm/dist"     
+        ],
+        "problemMatcher": [],
+        "detail": "Copy all JS files to the hardcoded destination"
+      }
     ]
   }
 }

@@ -1,15 +1,15 @@
 import { TraitViewData } from "@actor/data/base.js";
-import { Precondition, Effect, WorldState } from "./types.ts";
+import { StateCheck, Effect, WorldState } from "./structs.ts";
 
 export class Action {
-    private name: string;                   // name of the action (eg "Strike", "Stride")
-    private numberOfActions: number;        // number of actions to execute
-    private traits: TraitViewData[];        // pf2e-specific traits, used for damage calculations on attacks
-    private preconditions: Precondition[];  // what must be true of the actor's world state before acting
+    public name: string;                    // name of the action (eg "Strike", "Stride")
+    public numberOfActions: number;         // number of actions to execute
+    public traits: TraitViewData[];         // pf2e-specific traits, used for damage calculations on attacks
+    private preconditions: StateCheck[];    // what must be true of the actor's world state before acting
     private effects: Effect[];              // what is projected to be true of the actor's world state after acting
     private criticalEffects: Effect[];      // what is projected to be true of the actor's world state after critting
 
-    constructor(name : string, numberOfActions : number, traits : TraitViewData[], preconditions : Precondition[], effects : Effect[], criticalEffects : Effect[] = []) {
+    constructor(name : string, numberOfActions : number, traits : TraitViewData[], preconditions : StateCheck[], effects : Effect[], criticalEffects : Effect[] = []) {
         this.name = name;                       
         this.numberOfActions = numberOfActions; 
         this.traits = traits;                   

@@ -1,22 +1,37 @@
+import { Action } from "./action.ts";
+import { Goal } from "./goal.ts";
+import { WorldState } from "./structs.ts";
+
+interface Node {
+    state: WorldState;
+    actionCost: number;
+    heuristic: number;
+    actionNames: string[];
+}
+
 export class Planner {
-    constructor(actions) {
+    private actions: Action[];
+    private goal : Goal;
+
+    constructor(actions : Action[]) {
         this.actions = actions;
+        this.goal = new Goal("default", []);
     }
 
-    setGoal(goal) {
+    setGoal(goal : Goal) : void {
         this.goal = goal;
     }
 
-    generatePlan(worldState) {
+    generatePlan(worldState : WorldState) : string[] {
         // set contains traversible nodes
-        let traversible = [];
+        let traversible : Node[] = [];
 
         // Initial state
-        let startingNode = {
+        let startingNode : Node = {
             state: { ...worldState },
             actionCost: 0,
             heuristic: this.heuristic(worldState, this.goal),
-            actions: []
+            actionNames: []
         };
 
         traversible.push(startingNode);
@@ -24,38 +39,36 @@ export class Planner {
         while (traversible.length > 0) {
             // Get the node with the lowest action cost and heuristic
             traversible.sort((nodeA, nodeB) => (nodeA.actionCost + nodeA.heuristic) - (nodeB.actionCost + nodeB.heuristic));
-            let currentNode = traversible.shift();
+            let current : Node = traversible.shift()!;
 
-            if (currentNode.actionCost > 10) {
+            if (current.actionCost > 10) {
                 return [];
             }
 
             // check if we've achieved the goal
-            console.log("currentNode:");
-            console.log(currentNode);
-            if (this.goal.isAchieved(currentNode.state)) {
-                return currentNode.actionIds;
+            if (this.goal.isAchieved(current.state)) {
+                return current.actionNames;
             }
 
             // Iterate over actions 
-            for (const [name, action] of Object.entries(this.actions)) {
+            for (const action of this.actions) {
                 // check that we dont go over three actions
-                if ((currentNode.actionCost % 3) + action.numberOfActions > 3)
+                if ((current.actionCost % 3) + action.numberOfActions > 3)
                     continue;
 
                 // check preconditions
-                if (!action.canExecute(currentNode.state))
+                if (!action.canExecute(current.state))
                     continue;
                 
                 // apply the next action to get the new state
-                let newState = action.applyEffects(currentNode.state, currentNode.actionCost);
+                let newState = action.applyEffects(current.state, current.actionCost);
 
                 // next node
                 let nextNode = {
                     state: newState,
-                    actionCost: currentNode.actionCost + action.numberOfActions,
+                    actionCost: current.actionCost + action.numberOfActions,
                     heuristic: this.heuristic(newState, this.goal),
-                    actions: [...currentNode.actions, action.name]
+                    actionNames: [...current.actionNames, action.name]
                 }
                 traversible.push(nextNode);
             }
@@ -65,10 +78,10 @@ export class Planner {
     }
 
     // check the number of differing world state values
-    heuristic(worldState, goal) {
+    heuristic(worldState : WorldState, goal : Goal) : number {
         let score = 0;
         for (let desiredState of goal.desiredStates) {
-            let worldVal = worldState[desiredState['key']];
+            let worldVal = worldState[desiredState.key];
             if (!goal.doesStateFulfillGoal(desiredState, worldVal))
                 score++;
         }

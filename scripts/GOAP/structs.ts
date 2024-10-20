@@ -1,7 +1,8 @@
-export interface Precondition {
+export interface StateCheck {
     key: string;
     val: number | string | boolean;
     op: string;
+    penalty?: number;
 }
 
 export interface Effect {
