@@ -1,22 +1,26 @@
 import { TraitViewData } from "@actor/data/base.js";
 import { StateCheck, Effect, WorldState } from "./structs.ts";
 import { WeaponDamage } from "@item/weapon/data.js";
+import { WeaponPF2e } from "@item";
+
+// Define the string literal type
+export type DefenseType = "ac" | "fort" | "will" | "ref";
 
 export class Action {
     public name: string;                    // name of the action (eg "Strike", "Stride")
     public numberOfActions: number;         // number of actions to execute
-    public traits: TraitViewData[];         // pf2e-specific traits, used for damage calculations on attacks
     private preconditions: StateCheck[];    // what must be true of the actor's world state before acting
     private effects: Effect[];              // what is projected to be true of the actor's world state after acting
-    private criticalEffects: Effect[];      // what is projected to be true of the actor's world state after critting
+    private weaponData: WeaponPF2e | null;  // weapon data for calculating damage
+    private defenseType: DefenseType;       // defense type for calculating damage
 
-    constructor(name : string, numberOfActions : number, traits : TraitViewData[], preconditions : StateCheck[], effects : Effect[], criticalEffects : Effect[] = []) {
-        this.name = name;                       
-        this.numberOfActions = numberOfActions; 
-        this.traits = traits;                   
-        this.preconditions = preconditions;     
-        this.effects = effects;                 
-        this.criticalEffects = criticalEffects;
+    constructor(name : string, numberOfActions : number, preconditions : StateCheck[], effects : Effect[], weaponData: WeaponPF2e | null = null, defenseType: DefenseType = "ac") {
+        this.name = name;
+        this.numberOfActions = numberOfActions;
+        this.preconditions = preconditions;
+        this.effects = effects;
+        this.weaponData = weaponData;
+        this.defenseType = defenseType; 
     }
 
     canExecute(worldState : WorldState) : boolean {
@@ -60,8 +64,7 @@ export class Action {
             if (this.isWeaponDamage(value)) {
                 // key format for players: player1.ac, player1.hp, player1.fortSave, etc etc
                 let playerName = effect.key.split('.')[0];
-                let defType = 'ac'; // todo figure out how to extract different defenses
-                value = this.calculateMedianDamage(playerName, value as WeaponDamage, defType, worldState);
+                value = this.calculateMedianDamage(playerName, value as WeaponDamage, worldState);
             }
             
             let worldVal = result[effect.key];
@@ -106,24 +109,19 @@ export class Action {
         return value && typeof value === 'object' && 'dice' in value && 'die' in value && 'modifier' in value;
     }   
 
-    calculateMedianDamage(playerName : string, damageValue : WeaponDamage, defType : string, worldState : WorldState) : number{
+    calculateMedianDamage(playerName : string, damageValue : WeaponDamage, worldState : WorldState) : number{
         if (playerName === '') {
             return Math.max(Math.round(this.getMedianDiceDamage(damageValue)), 1);
         }
 
         let medDamageOnHit = this.getMedianDiceDamage(damageValue);
-        let chanceToHit = this.calculateChanceToHit(playerName, defType, worldState);
-        if (chanceToHit - 0.5 > 0) { // checking if we can crit, todo account for nat 1, nat 20
-            // let deadlyDice = '';
-            // let deadlyDiceTrait = this.traits.find(trait => trait.label.startsWith("deadly "));
-            // if (deadlyDiceTrait !== undefined)
-            //     deadlyDice = deadlyDiceTrait.label.substring(7);
-            let medDamageOnCrit = (medDamageOnHit * 2);// + this.getMedianDiceDamage(deadlyDice);
-
-            return Math.max(Math.round((medDamageOnHit * chanceToHit) + (medDamageOnCrit * (chanceToHit - 0.5))), 1);
-        } else {
-            return Math.max(Math.round(medDamageOnHit * chanceToHit), 1);
+        let hitChances = this.calculateChanceToHitAndCrit(playerName, worldState);
+        if (hitChances[1] > 0) {
+            let medDamageOnCrit = (medDamageOnHit * 2); // todo deadly dice
+            return Math.max(Math.round((medDamageOnHit * hitChances[0]) + (medDamageOnCrit * hitChances[1])), 1);
         }
+        
+        return Math.max(Math.round(medDamageOnHit * hitChances[0]), 1);
     }
 
     getMedianDiceDamage(damageValue : WeaponDamage) : number{
@@ -143,8 +141,66 @@ export class Action {
         return result;
     }
 
-    calculateChanceToHit(playerName : string, defType : string, worldState : WorldState) : number {
+    calculateChanceToHitAndCrit(playerName : string, worldState : WorldState) : [number, number] {
         let map = worldState["multiple_attack_penalty"] as number;
-        return 0.6 - (map * 0.25); // todo
+        if (this.weaponData === null) {
+            return [0.6 - (map * 0.25), 0.05];
+        }
+
+        let modifier = 0;
+        // multiple attack penalty
+        let mapPen = this.weaponData.traits.has("agile") ? 4 : 5;
+        modifier -= (map * mapPen);
+        // status penalties
+        let clumsy = (this.weaponData.traits.has("finesse") || this.weaponData.isRanged) ? worldState["clumsy"] as number || 0 : 0;
+        let enfeebled = (!this.weaponData.traits.has("finesse") && this.weaponData.isMelee) ? worldState["enfeebled"] as number || 0 : 0;
+        let frightened = worldState["frightened"] as number || 0;
+        let sickened = worldState["sickened"] as number || 0;
+        let miscPenalty = worldState["status_penalty_to_attack"] as number || 0;
+        modifier -= Math.max(clumsy, enfeebled, frightened, sickened, miscPenalty);
+        // circumstance penalties
+        let pronePenalty = worldState["prone"] === true ? 2 : 0;
+        miscPenalty = worldState["circumstance_penalty_to_attack"] as number || 0;
+        modifier -= Math.max(pronePenalty, miscPenalty);
+        // item penalties
+        miscPenalty = worldState["item_penalty_to_attack"] as number || 0;
+        modifier -= miscPenalty;
+        // bonuses
+        let statusBonus = worldState["status_bonus_to_attack"] as number || 0;
+        let circumstanceBonus = worldState["circumstance_bonus_to_attack"] as number || 0;
+        let itemBonus = worldState["item_bonus_to_attack"] as number || 0;
+        modifier += statusBonus + circumstanceBonus + itemBonus;
+        
+        let defVal = worldState[`${playerName}.${this.defenseType}`] as number;
+        let attackVal = this.weaponData.flags.pf2e.fixedAttack as number;
+
+        // 10 is the maximium number of rolls that can hit, because 10 above an DC is a crit
+        let rollsThatHit = this.clamp(20 - (defVal - (attackVal + modifier)), 0, 10); 
+        // 20 is the maximum number of rolls that can crit, 
+        let rollsThatCrit = this.clamp(20 - ((defVal + 10) - (attackVal + modifier)), 0, 20);
+
+        // check nat 1
+        if (1 + attackVal + modifier >= defVal + 10) {
+            rollsThatCrit--;
+            rollsThatHit++;
+        }
+        else if (1 + attackVal + modifier >= defVal) {
+            rollsThatHit--;
+        }
+
+        // check nat 20
+        if (20 + attackVal + modifier >= defVal && 20 + attackVal + modifier < defVal + 10) {
+            rollsThatCrit++;
+            rollsThatHit--;
+        }
+        else if (20 + attackVal + modifier >= defVal - 10 && 20 + attackVal + modifier < defVal) {
+            rollsThatHit++;
+        }
+        
+        return [rollsThatHit / 20, rollsThatCrit / 20];
+    }
+
+    clamp(val : number, min : number, max : number) : number {
+        return Math.min(Math.max(val, min), max);
     }
 }
