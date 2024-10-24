@@ -151,6 +151,8 @@ export class Action {
         // multiple attack penalty
         let mapPen = this.weaponData.traits.has("agile") ? 4 : 5;
         modifier -= (map * mapPen);
+        // flanking (technically a status penalty to AC, but we don't have to worry about that here)
+        modifier += (this.defenseType === "ac" && worldState[`is_flanking_${playerName}`] as boolean) ? 2 : 0;
         // status penalties
         let clumsy = (this.weaponData.traits.has("finesse") || this.weaponData.isRanged) ? worldState["clumsy"] as number || 0 : 0;
         let enfeebled = (!this.weaponData.traits.has("finesse") && this.weaponData.isMelee) ? worldState["enfeebled"] as number || 0 : 0;

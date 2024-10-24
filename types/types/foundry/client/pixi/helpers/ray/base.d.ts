@@ -44,7 +44,7 @@ declare global {
 
         static fromAngle(x: number, y: number, radians: number, distance: number): Ray;
 
-        static fromArrays(A: [], B: []): Ray;
+        static fromArrays(A: number[], B: number[]): Ray;
 
         /**
          * Project the Array by some proportion of it's initial distance.

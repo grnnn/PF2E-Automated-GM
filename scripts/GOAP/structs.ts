@@ -1,6 +1,7 @@
 import { WeaponDamage } from "@item/weapon/data";
 
 type AdjacentToPattern = `adjacent_to_${string}`;
+type IsFlankingPattern = `is_flanking_${string}`;
 type AcPattern = `${string}.ac`;
 type FortPattern = `${string}.fort`;
 type WillPattern = `${string}.will`;
@@ -17,7 +18,7 @@ type Penalties = "status_penalty_to_attack" | "circumstance_penalty_to_attack" |
 type Bonuses = "status_bonus_to_attack" | "circumstance_bonus_to_attack" | "item_bonus_to_attack";
 type DefensePattern = AcPattern | FortPattern | WillPattern | RefPattern;
 
-type WorldStateKey = AdjacentToPattern | HpPattern | DefensePattern | Condition | Penalties | Bonuses;
+type WorldStateKey = AdjacentToPattern | IsFlankingPattern | HpPattern | DefensePattern | Condition | Penalties | Bonuses;
 
 export interface StateCheck {
     key: WorldStateKey;
