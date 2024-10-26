@@ -4,12 +4,12 @@
 import { ActorPF2e } from "@actor";
 import { StrikeData } from "@actor/data/base.js";
 import { CombatantPF2e } from "@module/encounter/combatant.js";
+import { StateCheck, WorldState } from "./GOAP/structs.ts";
+import { WeaponPF2e } from "@item";
 
 import { Action } from "./GOAP/action.ts";
 import { Goal } from "./GOAP/goal.ts";
 import { Planner } from "./GOAP/planner.ts";
-import { StateCheck, WorldState } from "./GOAP/structs.ts";
-import { WeaponPF2e } from "@item";
 
 export class Agent {
     private actor : ActorPF2e;
@@ -129,5 +129,8 @@ export class Agent {
         }
 
         return new Goal("kill em all", goalStates);
+    }
+
+    getPath() : void {
     }
 }
